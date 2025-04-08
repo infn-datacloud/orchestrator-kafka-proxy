@@ -1,0 +1,18 @@
+version: '1.0'
+
+services:
+  orchestratordashboard:
+    image: xxx/orchestrator-kafka-proxy
+    ports:
+      - 5000:5001
+    volumes:
+      - "../certs:/certs"
+      - "../trusted_certs:/trusted_certs"
+      - "../instance/:/app/instance/"
+    networks:
+      - dev-network
+    environment:
+      ENABLE_HTTPS: True
+
+networks:
+  dev-network:

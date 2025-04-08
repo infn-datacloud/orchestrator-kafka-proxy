@@ -1,0 +1,6 @@
+kafka-python==2.0.3
+python-dateutil>=2.8.2
+pytz==2025.1
+python-json-config==1.2.3
+Flask==3.0.2
+Werkzeug==3.0.3
