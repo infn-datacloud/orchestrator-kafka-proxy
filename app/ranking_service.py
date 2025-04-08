@@ -34,7 +34,6 @@ def root():
 @cpr_bp.route("/rank", methods=['POST'])
 def get_deployment_rank():
     uuid = str(request.data)
-    uuid = "11f0095a-3795-8e38-b314-0242e34b7d6d"
     ranking_data = rp.get_ranking_data(uuid)
     if ranking_data:
         return ranking_data
