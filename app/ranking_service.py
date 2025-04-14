@@ -20,7 +20,6 @@ from flask import (
 from flask import current_app as app
 import app.ranking_processor as rp
 
-
 cpr_bp = Blueprint(
     "cpr_bp", __name__
 )

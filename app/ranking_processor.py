@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import json
 from flask import current_app as app
 import app.kafka_interface as ki
@@ -18,13 +19,15 @@ import sqlite3
 import time
 from threading import Event
 
-db_connection='file:ranking_database?mode=memory&cache=shared'
+db_connection = 'file:ranking_database?mode=memory&cache=shared'
+
 
 def check_database():
     conn = sqlite3.connect(db_connection, timeout=5)
     conn.execute('CREATE TABLE IF NOT EXISTS ranking_data (uuid TEXT, ts INTEGER, rank TEXT);')
     conn.commit()
     conn.close()
+
 
 # Process kafka queue and populate local cache
 def pupulate_ranking_data(topic, logger):
@@ -49,6 +52,7 @@ def pupulate_ranking_data(topic, logger):
         finally:
             if conn:
                 conn.close()
+
 
 # get element from local cache
 def get_ranking_data(uuid):
@@ -84,4 +88,3 @@ def clean_ranking_data(lifespan, logger):
         conn.commit()
         conn.close()
         Event().wait(86400)
-

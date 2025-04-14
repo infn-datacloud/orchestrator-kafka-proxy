@@ -17,7 +17,6 @@ import random
 import json
 from kafka import KafkaConsumer, KafkaProducer  # type: ignore
 
-
 bootstrap_servers = None
 
 BOOTSTRAP_MSG_ERR: str = "Bootstrap_servers is not set"

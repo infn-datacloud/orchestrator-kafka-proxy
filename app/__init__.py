@@ -25,7 +25,6 @@ from app.ranking_service import cpr_bp
 
 
 def create_app():
-
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
@@ -35,7 +34,6 @@ def create_app():
     else:
         app.config.from_file("config.json", json.load)
         app.config.from_prefixed_env()
-
 
     app.register_blueprint(cpr_bp, url_prefix=app.config['ROOT_PATH'])
 
@@ -61,13 +59,14 @@ def create_app():
                                      args=(messages_lifespan, app.logger), name='clean_ranking_data'),
     }
 
-    #start worker threads
+    # start worker threads
     for t in app.thread_dict.values():
         if not t.is_alive():
             t.start()
             time.sleep(1)
 
     return app
+
 
 # write test data in topic
 # populate_kafka.write_test_data(ranking_topic)

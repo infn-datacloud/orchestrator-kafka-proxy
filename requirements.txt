@@ -4,3 +4,4 @@ pytz==2025.1
 python-json-config==1.2.3
 Flask==3.0.2
 Werkzeug==3.0.3
+ruff==0.11.5

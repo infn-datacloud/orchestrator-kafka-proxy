@@ -14,7 +14,7 @@ if [ ! -d "${CERT_PATH}" ]; then
 else
   cd "${CERT_PATH}"
 
-  for cert in `ls *.pem`; do
+  for certs in `ls *.pem`; do
     md5res=`md5sum $cert`
     md5sum_str=`echo "$md5res" | cut -d' ' -f1`
     grep "$md5sum_str" .added_certs &> /dev/null
