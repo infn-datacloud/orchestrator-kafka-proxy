@@ -36,4 +36,4 @@ def get_deployment_rank():
     ranking_data = rp.get_ranking_data(uuid)
     if ranking_data:
         return ranking_data
-    return []
+    abort(404)
