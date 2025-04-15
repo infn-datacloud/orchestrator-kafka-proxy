@@ -14,7 +14,6 @@
 
 import json
 import os
-import time
 from threading import Thread
 from flask import Flask
 from logging.config import dictConfig
@@ -22,7 +21,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import app.kafka_interface as ki
 import app.ranking_processor as rp
 from app.ranking_service import cpr_bp
-
+from apscheduler.schedulers.background import BackgroundScheduler
+#from testing import populate_kafka
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -42,6 +42,9 @@ def create_app():
 
     app.logger.info("orchestrator-kafka-proxy is starting up")
 
+    # check and create database if not exists
+    rp.check_database()
+
     # Kafka parameteres
     ranking_topic = os.environ.get(app.config['KAFKA_RANKING_TOPIC'],
                                    app.config['KAFKA_RANKING_TOPIC_DEFAULT'])
@@ -49,53 +52,37 @@ def create_app():
                                        app.config['KAFKA_BOOTSTRAP_SERVERS_DEFAULT']).split(',')
     messages_lifespan = app.config['MESSAGES_LIFESPAN'] if app.config['MESSAGES_LIFESPAN'] else 5
 
+
     # set kafka server parameters
     ki.set_bootstrap_servers(bootstrap_servers)
 
+    # write test data in topic
+    # populate_kafka.write_test_data(ranking_topic)
+
+    app.scheduler = BackgroundScheduler(daemon=True)
+
     app.thread_dict = {
         'pupulate_ranking_data': Thread(target=rp.pupulate_ranking_data, daemon=True,
-                                        args=(ranking_topic, app.logger), name='pupulate_ranking_data'),
-        'clean_ranking_data': Thread(target=rp.clean_ranking_data, daemon=True,
-                                     args=(messages_lifespan, app.logger), name='clean_ranking_data'),
+                                        args=(ranking_topic, app.logger), name='pupulate_ranking_data')
     }
 
     # start worker threads
     for t in app.thread_dict.values():
         if not t.is_alive():
             t.start()
-            time.sleep(1)
+
+    # start scheduler
+    app.scheduler.add_job(rp.clean_ranking_data, 'cron', hour='2', minute= '0', id='clean_ranking_data', args=[messages_lifespan, app.logger])
+    app.scheduler.start()
 
     return app
-
-
-# write test data in topic
-# populate_kafka.write_test_data(ranking_topic)
-
-# Import historical messages from kafka topics
-# start_time = time()
-
-# collected_msgs = ki.collect_all_msgs_from_topic(ranking_topic)
-# for message in collected_msgs:
-#    rp.ranking_data[message.value['uuid']] = message
-# logger.info(f"Loaded {len(rp.ranking_data)} messages at startup.")
-
-
-# @app.on_event("startup")
-# async def startup_event():
-#    # start threads
-#    global thread_dict
-#    for t in thread_dict.values():
-#        t.start()
-#        time.sleep(0.1)
 
 
 def validate_log_level(log_level):
     """
     Validates that the provided log level is a valid choice.
-
     Parameters:
     - log_level (str): The log level to validate.
-
     Raises:
     - ValueError: If the log level is not one of ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'].
     """
