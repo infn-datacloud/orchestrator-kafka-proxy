@@ -1,12 +1,13 @@
 [tool.poetry]
 name = "orchestrator-kafka-proxy"
 version = "0.1.0"
-description = ""
+description = "Proxy interface between java orchestrator and AI-Ranker"
 authors = ["Michele Perniola <michele.perniola@ba.infn.it>"]
 readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
+python = "^3.9"
 kafka-python = "2.0.3"
 python-dateutil = "^2.8.2"
 pytz = "2025.1"
