@@ -27,6 +27,7 @@ def check_database():
     try:
         conn = sqlite3.connect(db_connection, timeout=5)
         conn.execute('CREATE TABLE IF NOT EXISTS ranking_data (uuid TEXT, ts INTEGER, rank TEXT);')
+        conn.execute('DELETE FROM ranking_data;')
         conn.commit()
     finally:
         if conn:

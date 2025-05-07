@@ -988,7 +988,7 @@ def get_topic_data():
          "ram_gb_requ": 8.0, "ram_gb_usage": 432.0, "region_name": "bari", "storage_gb_quota": 1500.0,
          "storage_gb_requ": 0.0, "storage_gb_usage": 1451.0, "test_failure_perc_1d": 0.0, "test_failure_perc_30d": 0.0,
          "test_failure_perc_7d": 0.0, "vcpus_quota": 240.0, "vcpus_requ": 4.0, "vcpus_usage": 217.0},
-        {"classification": 0.5625, "regression": -0.25, "resource_exactness": 1.0, "bandwidth_in": 10.0,
+        {"classification": 0.6, "regression": -0.25, "resource_exactness": 1.0, "bandwidth_in": 10.0,
          "bandwidth_out": 10.0, "exact_flavors": 1.0, "floating_ips_quota": 0.0, "floating_ips_requ": 1.0,
          "floating_ips_usage": 0.0, "gpus_requ": 0.0, "n_instances_quota": 15.0, "n_instances_requ": 1.0,
          "n_instances_usage": 5.0, "n_volumes_quota": 10.0, "n_volumes_requ": 0.0, "n_volumes_usage": 0.0,
