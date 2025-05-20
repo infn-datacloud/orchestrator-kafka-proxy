@@ -1,27 +1,101 @@
-**/__pycache__
-*.pyc
-*.pyo
-*.pyd
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI
+.codeclimate.yml
+.travis.yml
+.taskcluster.yml
+
+# Docker
+docker-compose.yml
+Dockerfile
+.docker
+.dockerignore
+
+# Byte-compiled / optimized / DLL files
+**/__pycache__/
+**/*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
 .Python
-env
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-.tox
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
 .coverage
-.coverage.*
 .cache
 nosetests.xml
 coverage.xml
-*.cover
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
 *.log
-.git
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Virtual environment
+.env
+.venv/
+venv/
+
+# PyCharm
+.idea
+
+# Python mode for VIM
+.ropeproject
+**/.ropeproject
+
+# Vim swap files
+**/*.swp
+
+# VS Code
+.vscode/
+.devcontainer/
+
+# Flask
+instance/**
+
+# Others left from Michele
+.coverage.*
+.cache
+*.cover
 .mypy_cache
 .pytest_cache
 .hypothesis
-# flask
-instance/**
-# vscode
-.vscode
-.devcontainer
-# virtual envs
-.venv
+
