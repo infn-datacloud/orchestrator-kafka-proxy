@@ -1,38 +1,34 @@
-ARG PYTHON_VERSION=3.9.18
+ARG PYTHON_VERSION=3.9
+ARG POETRY_VERSION=1.8.3
 
-FROM python:${PYTHON_VERSION}
+# Create requirements.txt from poetry dependencies
+FROM ghcr.io/withlogicco/poetry:${POETRY_VERSION}-python-${PYTHON_VERSION}-slim AS requirements
 
-ARG USERNAME=flask
-ARG USER_UID=1001
-ARG USER_GID=${USER_UID}
+WORKDIR /tmp
 
-# Create the user
-RUN groupadd --gid ${USER_GID} ${USERNAME} \
-    && useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} -s /bin/bash \
-    && apt-get update \
-    && apt-get -y install --no-install-recommends libsasl2-dev libldap2-dev libssl-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-ENV PATH=${PATH}:/home/${USERNAME}/.local/bin
-USER ${USERNAME}
+RUN poetry export \
+    -f requirements.txt \
+    --output requirements.txt \
+    --without-hashes \
+    --without dev
 
-COPY --chown=${USERNAME}:${USERNAME} ./requirements.txt /app/requirements.txt
-RUN pip3 install --user gunicorn \
-    && pip install --user --no-cache-dir --upgrade -r /app/requirements.txt
 
-COPY --chown=${USERNAME}:${USERNAME} ./app /app/app
-COPY --chown=${USERNAME}:${USERNAME} ./config /app/config
-COPY --chown=${USERNAME}:${USERNAME} ./orchestrator-kafka-proxy.py /app/corchestrator-kafka-proxy.py
-COPY --chown=${USERNAME}:${USERNAME} ./docker/start.sh /home/${USERNAME}/.local/bin/start.sh
+FROM python:${PYTHON_VERSION}-slim AS production
+
+# Updating packages and installing libraries
+RUN apt-get update \
+    && apt-get clean
 
 WORKDIR /app/
 
-ENV PYTHONPATH=/app
-ENV TIMEOUT=60
-ENV ENABLE_HTTPS=False
-ENV WORKERS=1
+# Upgrade pip and install requirements
+COPY --from=requirements /tmp/requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
-EXPOSE 5001
+COPY ./app /app/app
+COPY ./orchestrator_kafka_proxy.py /app/orchestrator_kafka_proxy.py
 
-CMD ["start.sh"]
+CMD ["python", "orchestrator_kafka_proxy.py"]
