@@ -1,6 +1,6 @@
 services:
   orchestratordashboard:
-    image: orchestrator-kafka-proxy
+    image: harbor.cloud.infn.it/datacloud-middleware/orchestrator-kafka-proxy
     ports:
       - 5000:5000
     volumes:
