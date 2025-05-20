@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         PROJECT_NAME = 'orchestrator-kafka-proxy'
-        DOCKERFILE = './dockerfiles/Dockerfile'
+        DOCKERFILE = './docker/Dockerfile'
 
         DOCKER_HUB_CREDENTIALS_NAME = 'docker-hub-credentials'
         DOCKER_HUB_CREDENTIALS = credentials("${DOCKER_HUB_CREDENTIALS_NAME}")
