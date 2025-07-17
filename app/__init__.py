@@ -52,9 +52,21 @@ def create_app():
         "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
     ).split(",")
     messages_lifespan = app.config.get("MESSAGES_LIFESPAN", 5)
+    kafka_ssl_enable = app.config.get("KAFKA_SSL_ENABLE", False)
+    kafka_ssl_ca_path = app.config.get("KAFKA_SSL_CACERT_PATH", None)
+    kafka_ssl_cert_path = app.config.get("KAFKA_SSL_CERT_PATH", None)
+    kafka_ssl_key_path = app.config.get("KAFKA_SSL_KEY_PATH", None)
+    kafka_ssl_password = app.config.get("KAFKA_SSL_PASSWORD", None)
 
     # set kafka server parameters
-    ki.set_bootstrap_servers(bootstrap_servers)
+    ki.set_global_vars(
+        bootstrap_servers,
+        kafka_ssl_enable,
+        kafka_ssl_ca_path,
+        kafka_ssl_cert_path,
+        kafka_ssl_key_path,
+        kafka_ssl_password,
+    )
 
     # write test data in topic
     # populate_kafka.write_test_data(ranking_topic)
