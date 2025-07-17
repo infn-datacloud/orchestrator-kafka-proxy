@@ -60,12 +60,12 @@ def create_app():
 
     # set kafka server parameters
     ki.set_global_vars(
-        bootstrap_servers,
-        kafka_ssl_enable,
-        kafka_ssl_ca_path,
-        kafka_ssl_cert_path,
-        kafka_ssl_key_path,
-        kafka_ssl_password,
+        b_servers=bootstrap_servers,
+        k_ssl_enable=kafka_ssl_enable,
+        k_ssl_ca_path=kafka_ssl_ca_path,
+        k_ssl_cert_path=kafka_ssl_cert_path,
+        k_ssl_key_path=kafka_ssl_key_path,
+        k_ssl_password=kafka_ssl_password,
     )
 
     # write test data in topic
@@ -113,7 +113,7 @@ def configure_logging(app):
     Parameters:
     - app (Flask): The Flask application instance.
     """
-    level = app.config.get("LOG_LEVEL")
+    level = app.config.get("LOG_LEVEL", "INFO")
     validate_log_level(level)
 
     if level == "DEBUG":
