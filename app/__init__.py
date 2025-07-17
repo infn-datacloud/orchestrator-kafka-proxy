@@ -32,10 +32,11 @@ def create_app():
     if os.environ.get("TESTING", "").lower() == "true":
         app.config.from_file("../tests/resources/config.json", json.load)
     else:
-        app.config.from_file("config.json", json.load)
+        if os.path.exists(os.path.join(app.instance_path, "config.json")):
+            app.config.from_file("config.json", json.load)
         app.config.from_prefixed_env()
 
-    app.register_blueprint(cpr_bp, url_prefix=app.config['ROOT_PATH'])
+    app.register_blueprint(cpr_bp, url_prefix=app.config.get("ROOT_PATH", "/cpr"))
 
     # Log configuration
     configure_logging(app)
@@ -46,12 +47,11 @@ def create_app():
     rp.check_database()
 
     # Kafka parameteres
-    ranking_topic = os.environ.get(app.config['KAFKA_RANKING_TOPIC'],
-                                   app.config['KAFKA_RANKING_TOPIC_DEFAULT'])
-    bootstrap_servers = os.environ.get(app.config['KAFKA_BOOTSTRAP_SERVERS'],
-                                       app.config['KAFKA_BOOTSTRAP_SERVERS_DEFAULT']).split(',')
-    messages_lifespan = app.config['MESSAGES_LIFESPAN'] if app.config['MESSAGES_LIFESPAN'] else 5
-
+    ranking_topic = app.config.get("KAFKA_RANKING_TOPIC")
+    bootstrap_servers = app.config.get(
+        "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
+    ).split(",")
+    messages_lifespan = app.config.get("MESSAGES_LIFESPAN", 5)
 
     # set kafka server parameters
     ki.set_bootstrap_servers(bootstrap_servers)
