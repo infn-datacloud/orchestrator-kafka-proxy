@@ -19,7 +19,7 @@ import sqlite3
 import time
 from threading import Event
 
-db_connection = 'file:ranking_database?mode=memory&cache=shared'
+db_connection = 'file:ranking_database?&cache=shared'
 
 
 def check_database(logger):
