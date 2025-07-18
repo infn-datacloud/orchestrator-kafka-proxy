@@ -44,7 +44,7 @@ def create_app():
     app.logger.info("orchestrator-kafka-proxy is starting up")
 
     # check and create database if not exists
-    rp.check_database()
+    rp.check_database(app.logger)
 
     # Kafka parameteres
     ranking_topic = app.config.get("KAFKA_RANKING_TOPIC")

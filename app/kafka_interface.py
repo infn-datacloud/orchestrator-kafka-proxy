@@ -142,10 +142,10 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
 
     def derserializer(deser_format):
         def decode_str_func(x):
-            return x.decode('utf-8')
+            return lambda x: x.decode('utf-8')
 
         def decode_json_func(x):
-            return json.loads(x.decode('utf-8'))
+            return lambda x: json.loads(x.decode('utf-8'))
 
         if deser_format == 'json':
             return decode_json_func
@@ -186,10 +186,10 @@ def get_topic_consumer_obj(topic, deser_format='str'):
 
     def derserializer(deser_format):
         def decode_str_func(x):
-            return x.decode('utf-8')
+            return lambda x: x.decode('utf-8')
 
         def decode_json_func(x):
-            return json.loads(x.decode('utf-8'))
+            return lambda x: json.loads(x.decode('utf-8'))
 
         if deser_format == 'json':
             return decode_json_func

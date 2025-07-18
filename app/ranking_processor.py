@@ -22,13 +22,17 @@ from threading import Event
 db_connection = 'file:ranking_database?mode=memory&cache=shared'
 
 
-def check_database():
+def check_database(logger):
     conn = None
     try:
+        logger.info("Connecting to: '%s'", db_connection)
         conn = sqlite3.connect(db_connection, timeout=5)
         conn.execute('CREATE TABLE IF NOT EXISTS ranking_data (uuid TEXT, ts INTEGER, rank TEXT);')
         conn.execute('DELETE FROM ranking_data;')
         conn.commit()
+        logger.info("Operation completed")
+    except Exception as e:
+        logger.error(e)
     finally:
         if conn:
             conn.close()
@@ -38,17 +42,16 @@ def check_database():
 def pupulate_ranking_data(topic, logger):
     logger.info("pupulate_ranking_data thread is starting up")
     consumer = ki.get_topic_consumer_obj(topic, deser_format='json')
-    while True:
+    for message in consumer:
         try:
-            for message in consumer:
-                uuid = message.value['uuid']
-                ts = message.timestamp
-                rank = json.dumps(message.value["ranked_providers"])
-                conn = sqlite3.connect(db_connection, timeout=5)
-                conn.execute("INSERT INTO ranking_data VALUES (?, ?, ?);", [uuid, ts, rank])
-                conn.commit()
-                conn.close()
-                logger.info(f"Loaded {uuid} ranking data.")
+            uuid = message.value['uuid']
+            ts = message.timestamp
+            rank = json.dumps(message.value["ranked_providers"])
+            conn = sqlite3.connect(db_connection, timeout=5)
+            conn.execute("INSERT INTO ranking_data VALUES (?, ?, ?);", [uuid, ts, rank])
+            conn.commit()
+            conn.close()
+            logger.info(f"Loaded {uuid} ranking data.")
         except BaseException as e:
             logger.error('{!r}; error loading ranking data'.format(e))
 
