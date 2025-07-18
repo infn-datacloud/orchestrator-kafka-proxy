@@ -17,15 +17,41 @@ import random
 import json
 from kafka import KafkaConsumer, KafkaProducer  # type: ignore
 
-bootstrap_servers = None
-
 BOOTSTRAP_MSG_ERR: str = "Bootstrap_servers is not set"
 SYSLOG_TS_FORMAT = "%Y-%m-%dT%H:%M:%S%z"  # YYYY-MM-DDTHH:MM:SS+ZZ:ZZ
 
+db_connection = None
+bootstrap_servers = None
+ssl_enable = None
+ssl_ca_path = None
+ssl_cert_path = None
+ssl_key_path = None
+ssl_password = None
 
-def set_bootstrap_servers(b_servers):
+def set_global_vars(
+    *,
+    b_db_connection,
+    b_servers,
+    k_ssl_enable,
+    k_ssl_ca_path,
+    k_ssl_cert_path,
+    k_ssl_key_path,
+    k_ssl_password,
+):
+    global db_connection
+    db_connection = b_db_connection
     global bootstrap_servers
     bootstrap_servers = b_servers
+    global ssl_enable
+    ssl_enable =k_ssl_enable
+    global ssl_ca_path
+    ssl_ca_path = k_ssl_ca_path
+    global ssl_cert_path
+    ssl_cert_path = k_ssl_cert_path
+    global ssl_key_path
+    ssl_key_path = k_ssl_key_path
+    global ssl_password
+    ssl_password = k_ssl_password
 
 
 # Write message in kafka topic
@@ -65,7 +91,14 @@ def collect_all_msgs_from_topics(*topics):
         value_deserializer=lambda x: json.loads(x.decode('utf-8')),
         max_partition_fetch_bytes=100_000_000,
         fetch_max_bytes=50_000_000,
-        consumer_timeout_ms=10000
+        consumer_timeout_ms=10000,
+        max_poll_records=1,
+        security_protocol="SSL",
+        ssl_check_hostname=False,
+        ssl_cafile=ssl_ca_path,
+        ssl_certfile=ssl_cert_path,
+        ssl_keyfile=ssl_key_path,
+        ssl_password=ssl_password
     )
 
     collected_msgs = {topic: list() for topic in topics}
@@ -90,10 +123,17 @@ def collect_all_msgs_from_topic(topic):
         group_id=f'{topic}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+        value_deserializer=json.loads(x.decode('utf-8')),
         max_partition_fetch_bytes=100_000_000,
         fetch_max_bytes=50_000_000,
-        consumer_timeout_ms=10000
+        consumer_timeout_ms=10000,
+        max_poll_records=1,
+        security_protocol="SSL",
+        ssl_check_hostname=False,
+        ssl_cafile=ssl_ca_path,
+        ssl_certfile=ssl_cert_path,
+        ssl_keyfile=ssl_key_path,
+        ssl_password=ssl_password
     )
 
     collected_msgs = list()
@@ -113,12 +153,10 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
             return x.decode('utf-8')
 
         def decode_json_func(x):
-            return json.loads(x.decode('utf-8'))
+            return lambda x: json.loads(x.decode('utf-8'))
 
         if deser_format == 'json':
             return decode_json_func
-        elif deser_format == 'str':
-            return decode_str_func
         else:
             return decode_str_func
 
@@ -133,7 +171,14 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
         group_id=f'{group_base}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=deser_func
+        value_deserializer=deser_func,
+        max_poll_records=1,
+        security_protocol="SSL",
+        ssl_check_hostname=False,
+        ssl_cafile=ssl_ca_path,
+        ssl_certfile=ssl_cert_path,
+        ssl_keyfile=ssl_key_path,
+        ssl_password=ssl_password
     )
 
     return consumer
@@ -154,8 +199,6 @@ def get_topic_consumer_obj(topic, deser_format='str'):
 
         if deser_format == 'json':
             return decode_json_func
-        elif deser_format == 'str':
-            return decode_str_func
         else:
             return decode_str_func
 
@@ -169,13 +212,20 @@ def get_topic_consumer_obj(topic, deser_format='str'):
         group_id=f'{topic}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=deser_func
+        value_deserializer=deser_func,
+        max_poll_records=1,
+        security_protocol="SSL",
+        ssl_check_hostname=False,
+        ssl_cafile=ssl_ca_path,
+        ssl_certfile=ssl_cert_path,
+        ssl_keyfile=ssl_key_path,
+        ssl_password=ssl_password
     )
 
     return consumer
 
 
-def get_consumer_obj_Str(*topics):
+def get_consumer_obj_str(*topics):
     global bootstrap_servers
     if bootstrap_servers is None:
         print(BOOTSTRAP_MSG_ERR)
@@ -191,7 +241,14 @@ def get_consumer_obj_Str(*topics):
         group_id=f'{group_base}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=lambda x: x.decode('utf-8')
+        value_deserializer=lambda x: x.decode("utf-8"),
+        max_poll_records=1,
+        security_protocol="SSL",
+        ssl_check_hostname=False,
+        ssl_cafile=ssl_ca_path,
+        ssl_certfile=ssl_cert_path,
+        ssl_keyfile=ssl_key_path,
+        ssl_password=ssl_password
     )
 
     return consumer
