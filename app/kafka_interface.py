@@ -149,8 +149,6 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
 
         if deser_format == 'json':
             return decode_json_func
-        elif deser_format == 'str':
-            return decode_str_func
         else:
             return decode_str_func
 
@@ -165,7 +163,7 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
         group_id=f'{group_base}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=deser_func,
+        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
         max_poll_records=1,
         security_protocol="SSL",
         ssl_check_hostname=False,
@@ -193,8 +191,6 @@ def get_topic_consumer_obj(topic, deser_format='str'):
 
         if deser_format == 'json':
             return decode_json_func
-        elif deser_format == 'str':
-            return decode_str_func
         else:
             return decode_str_func
 
@@ -208,7 +204,7 @@ def get_topic_consumer_obj(topic, deser_format='str'):
         group_id=f'{topic}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=deser_func,
+        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
         max_poll_records=1,
         security_protocol="SSL",
         ssl_check_hostname=False,
