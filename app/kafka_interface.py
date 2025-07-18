@@ -123,7 +123,7 @@ def collect_all_msgs_from_topic(topic):
         group_id=f'{topic}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=json.loads(x.decode('utf-8')),
+        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
         max_partition_fetch_bytes=100_000_000,
         fetch_max_bytes=50_000_000,
         consumer_timeout_ms=10000,
