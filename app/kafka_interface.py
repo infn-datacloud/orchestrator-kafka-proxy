@@ -17,14 +17,20 @@ import random
 import json
 from kafka import KafkaConsumer, KafkaProducer  # type: ignore
 
-bootstrap_servers = None
-
 BOOTSTRAP_MSG_ERR: str = "Bootstrap_servers is not set"
 SYSLOG_TS_FORMAT = "%Y-%m-%dT%H:%M:%S%z"  # YYYY-MM-DDTHH:MM:SS+ZZ:ZZ
 
+db_connection = None
+bootstrap_servers = None
+ssl_enable = None
+ssl_ca_path = None
+ssl_cert_path = None
+ssl_key_path = None
+ssl_password = None
 
 def set_global_vars(
     *,
+    b_db_connection,
     b_servers,
     k_ssl_enable,
     k_ssl_ca_path,
@@ -32,6 +38,8 @@ def set_global_vars(
     k_ssl_key_path,
     k_ssl_password,
 ):
+    global db_connection
+    db_connection = b_db_connection
     global bootstrap_servers
     bootstrap_servers = b_servers
     global ssl_enable
@@ -163,7 +171,7 @@ def get_topics_consumer_obj(*topics, deser_format='str'):
         group_id=f'{group_base}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+        value_deserializer=deser_func,
         max_poll_records=1,
         security_protocol="SSL",
         ssl_check_hostname=False,
@@ -204,7 +212,7 @@ def get_topic_consumer_obj(topic, deser_format='str'):
         group_id=f'{topic}-{group_id}',
         auto_offset_reset='earliest',
         enable_auto_commit=True,
-        value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+        value_deserializer=deser_func,
         max_poll_records=1,
         security_protocol="SSL",
         ssl_check_hostname=False,
@@ -217,7 +225,7 @@ def get_topic_consumer_obj(topic, deser_format='str'):
     return consumer
 
 
-def get_consumer_obj_Str(*topics):
+def get_consumer_obj_str(*topics):
     global bootstrap_servers
     if bootstrap_servers is None:
         print(BOOTSTRAP_MSG_ERR)

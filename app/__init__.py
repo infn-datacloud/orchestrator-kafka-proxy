@@ -22,12 +22,11 @@ import app.kafka_interface as ki
 import app.ranking_processor as rp
 from app.ranking_service import cpr_bp
 from apscheduler.schedulers.background import BackgroundScheduler
-#from testing import populate_kafka
+# from testing import populate_kafka
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ProxyFix(app.wsgi_app)
-
     # read configuration file
     if os.environ.get("TESTING", "").lower() == "true":
         app.config.from_file("../tests/resources/config.json", json.load)
@@ -43,11 +42,9 @@ def create_app():
 
     app.logger.info("orchestrator-kafka-proxy is starting up")
 
-    # check and create database if not exists
-    rp.check_database(app.logger)
-
     # Kafka parameteres
-    ranking_topic = app.config.get("KAFKA_RANKING_TOPIC")
+    db_connection = app.config.get("DB_CONNECTION", "file:ranking_database?mode=memory&cache=shared")
+    ranking_topic = app.config.get("KAFKA_RANKING_TOPIC", "ranked-providers")
     bootstrap_servers = app.config.get(
         "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
     ).split(",")
@@ -60,6 +57,7 @@ def create_app():
 
     # set kafka server parameters
     ki.set_global_vars(
+        b_db_connection=db_connection,
         b_servers=bootstrap_servers,
         k_ssl_enable=kafka_ssl_enable,
         k_ssl_ca_path=kafka_ssl_ca_path,
@@ -67,6 +65,9 @@ def create_app():
         k_ssl_key_path=kafka_ssl_key_path,
         k_ssl_password=kafka_ssl_password,
     )
+
+    # check and create database if not exists
+    rp.check_database(app.logger)
 
     # write test data in topic
     # populate_kafka.write_test_data(ranking_topic)
