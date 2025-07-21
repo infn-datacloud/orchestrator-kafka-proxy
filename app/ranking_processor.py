@@ -56,7 +56,7 @@ def pupulate_ranking_data(topic, logger):
 
 # get element from local cache
 def get_ranking_data(uuid):
-    delay = int(app.config['QUERY_TIMEOUT'])
+    delay = int(app.config.get('QUERY_TIMEOUT', 5))
     app.logger.info(f"Requested ranking for deployment id:{uuid}")
     ranking_data = None
     conn = None
