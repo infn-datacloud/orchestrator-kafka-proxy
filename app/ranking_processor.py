@@ -17,18 +17,19 @@ from flask import current_app as app
 import app.kafka_interface as ki
 import sqlite3
 import time
-from threading import Event
-
-db_connection = 'file:ranking_database?mode=memory&cache=shared'
 
 
-def check_database():
+def check_database(logger):
     conn = None
     try:
-        conn = sqlite3.connect(db_connection, timeout=5)
+        logger.info("Connecting to: '%s'", ki.db_connection)
+        conn = sqlite3.connect(ki.db_connection, timeout=5)
         conn.execute('CREATE TABLE IF NOT EXISTS ranking_data (uuid TEXT, ts INTEGER, rank TEXT);')
         conn.execute('DELETE FROM ranking_data;')
         conn.commit()
+        logger.info("Operation completed")
+    except Exception as e:
+        logger.error(e)
     finally:
         if conn:
             conn.close()
@@ -44,7 +45,7 @@ def pupulate_ranking_data(topic, logger):
                 uuid = message.value['uuid']
                 ts = message.timestamp
                 rank = json.dumps(message.value["ranked_providers"])
-                conn = sqlite3.connect(db_connection, timeout=5)
+                conn = sqlite3.connect(ki.db_connection, timeout=5)
                 conn.execute("INSERT INTO ranking_data VALUES (?, ?, ?);", [uuid, ts, rank])
                 conn.commit()
                 conn.close()
@@ -55,13 +56,13 @@ def pupulate_ranking_data(topic, logger):
 
 # get element from local cache
 def get_ranking_data(uuid):
-    delay = int(app.config['QUERY_TIMEOUT'])
+    delay = int(app.config.get('QUERY_TIMEOUT', 5))
     app.logger.info(f"Requested ranking for deployment id:{uuid}")
     ranking_data = None
     conn = None
     try:
         while delay > 0:
-            conn = sqlite3.connect(db_connection, timeout=5)
+            conn = sqlite3.connect(ki.db_connection, timeout=5)
             cur = conn.cursor()
             cur.execute('SELECT rank FROM ranking_data WHERE uuid=?;', [uuid])
             raw = cur.fetchone()
@@ -83,7 +84,7 @@ def clean_ranking_data(lifespan, logger):
     conn = None
     try:
         check_time = time.time() - float(lifespan) * 86400
-        conn = sqlite3.connect(db_connection, timeout=5)
+        conn = sqlite3.connect(ki.db_connection, timeout=5)()
         cur = conn.cursor()
         cur.execute("DELETE FROM ranking_data WHERE ranking_data.ts < ?;", [check_time])
         conn.commit()

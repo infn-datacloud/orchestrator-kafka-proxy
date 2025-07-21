@@ -22,39 +22,52 @@ import app.kafka_interface as ki
 import app.ranking_processor as rp
 from app.ranking_service import cpr_bp
 from apscheduler.schedulers.background import BackgroundScheduler
-#from testing import populate_kafka
+# from testing import populate_kafka
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.wsgi_app = ProxyFix(app.wsgi_app)
-
     # read configuration file
     if os.environ.get("TESTING", "").lower() == "true":
         app.config.from_file("../tests/resources/config.json", json.load)
     else:
-        app.config.from_file("config.json", json.load)
+        if os.path.exists(os.path.join(app.instance_path, "config.json")):
+            app.config.from_file("config.json", json.load)
         app.config.from_prefixed_env()
 
-    app.register_blueprint(cpr_bp, url_prefix=app.config['ROOT_PATH'])
+    app.register_blueprint(cpr_bp, url_prefix=app.config.get("ROOT_PATH", "/cpr"))
 
     # Log configuration
     configure_logging(app)
 
     app.logger.info("orchestrator-kafka-proxy is starting up")
 
-    # check and create database if not exists
-    rp.check_database()
-
     # Kafka parameteres
-    ranking_topic = os.environ.get(app.config['KAFKA_RANKING_TOPIC'],
-                                   app.config['KAFKA_RANKING_TOPIC_DEFAULT'])
-    bootstrap_servers = os.environ.get(app.config['KAFKA_BOOTSTRAP_SERVERS'],
-                                       app.config['KAFKA_BOOTSTRAP_SERVERS_DEFAULT']).split(',')
-    messages_lifespan = app.config['MESSAGES_LIFESPAN'] if app.config['MESSAGES_LIFESPAN'] else 5
-
+    db_connection = app.config.get("DB_CONNECTION", "file:ranking_database?mode=memory&cache=shared")
+    ranking_topic = app.config.get("KAFKA_RANKING_TOPIC", "ranked-providers")
+    bootstrap_servers = app.config.get(
+        "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
+    ).split(",")
+    messages_lifespan = app.config.get("MESSAGES_LIFESPAN", 5)
+    kafka_ssl_enable = app.config.get("KAFKA_SSL_ENABLE", False)
+    kafka_ssl_ca_path = app.config.get("KAFKA_SSL_CACERT_PATH", None)
+    kafka_ssl_cert_path = app.config.get("KAFKA_SSL_CERT_PATH", None)
+    kafka_ssl_key_path = app.config.get("KAFKA_SSL_KEY_PATH", None)
+    kafka_ssl_password = app.config.get("KAFKA_SSL_PASSWORD", None)
 
     # set kafka server parameters
-    ki.set_bootstrap_servers(bootstrap_servers)
+    ki.set_global_vars(
+        b_db_connection=db_connection,
+        b_servers=bootstrap_servers,
+        k_ssl_enable=kafka_ssl_enable,
+        k_ssl_ca_path=kafka_ssl_ca_path,
+        k_ssl_cert_path=kafka_ssl_cert_path,
+        k_ssl_key_path=kafka_ssl_key_path,
+        k_ssl_password=kafka_ssl_password,
+    )
+
+    # check and create database if not exists
+    rp.check_database(app.logger)
 
     # write test data in topic
     # populate_kafka.write_test_data(ranking_topic)
@@ -101,7 +114,7 @@ def configure_logging(app):
     Parameters:
     - app (Flask): The Flask application instance.
     """
-    level = app.config.get("LOG_LEVEL")
+    level = app.config.get("LOG_LEVEL", "INFO")
     validate_log_level(level)
 
     if level == "DEBUG":

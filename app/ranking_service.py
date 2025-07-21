@@ -17,8 +17,8 @@ from flask import (
     Blueprint,
     request,
 )
-from flask import current_app as app
 import app.ranking_processor as rp
+from flask import current_app as app
 
 cpr_bp = Blueprint(
     "cpr_bp", __name__
@@ -32,7 +32,9 @@ def root():
 
 @cpr_bp.route("/rank", methods=['POST'])
 def get_deployment_rank():
-    uuid = str(request.data)
+    uuid = request.data
+    if isinstance(uuid, bytes):
+        uuid = uuid.decode("utf-8")
     ranking_data = rp.get_ranking_data(uuid)
     if ranking_data:
         return ranking_data
