@@ -39,16 +39,17 @@ def check_database(logger):
 def pupulate_ranking_data(topic, logger):
     logger.info("pupulate_ranking_data thread is starting up")
     consumer = ki.get_topic_consumer_obj(topic, deser_format='json')
-    for message in consumer:
+    while True:
         try:
-            uuid = message.value['uuid']
-            ts = message.timestamp
-            rank = json.dumps(message.value["ranked_providers"])
-            conn = sqlite3.connect(ki.db_connection, timeout=5)
-            conn.execute("INSERT INTO ranking_data VALUES (?, ?, ?);", [uuid, ts, rank])
-            conn.commit()
-            conn.close()
-            logger.info(f"Loaded {uuid} ranking data.")
+            for message in consumer:
+                uuid = message.value['uuid']
+                ts = message.timestamp
+                rank = json.dumps(message.value["ranked_providers"])
+                conn = sqlite3.connect(ki.db_connection, timeout=5)
+                conn.execute("INSERT INTO ranking_data VALUES (?, ?, ?);", [uuid, ts, rank])
+                conn.commit()
+                conn.close()
+                logger.info(f"Loaded {uuid} ranking data.")
         except BaseException as e:
             logger.error('{!r}; error loading ranking data'.format(e))
 
